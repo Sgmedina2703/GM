@@ -278,7 +278,18 @@ function ensureDefaults(){
   });
   if(!t.fonts) t.fonts = JSON.parse(JSON.stringify(THEME_DEFAULT.fonts));
   if(!t.radius) t.radius = "normal";
+  if(!t.layout) t.layout = {};
+  Object.keys(LAYOUT_DEFAULT).forEach(k=>{ if(t.layout[k]===undefined) t.layout[k] = LAYOUT_DEFAULT[k]; });
 }
+const LAYOUT_DEFAULT = {
+  headerH:74, navPos:"center", logoH:42, logoW:190,
+  heroAlign:"center", heroTitle:100, heroText:100, heroMascot:100, heroBtns:100,
+  showEyebrow:true, showSub:true, showCta1:true, showCta2:true,
+  btnSize:100, btnShape:"pill",
+  sectionPad:100, wrapW:1180,
+  cardMin:265, cardRatio:"alta",
+  footerSize:100, showFootShop:true, showFootBrand:true, showFootHelp:true
+};
 
 /* ================= cargar ================= */
 async function load(){
@@ -330,6 +341,7 @@ const NAV = [
   ]],
   ["🎨 Apariencia", [
     ["marca","Marca y logo"],
+    ["diseno","Tamaños y posición"],
     ["colores","Colores"],
     ["tipografia","Tipografía"]
   ]],
@@ -691,6 +703,64 @@ marca(){
       <p class="hint" style="margin-top:.6rem">Toma el logo del modo claro y lo pinta de blanco conservando su forma (necesita PNG con fondo transparente).</p>
     </div>`;
 },
+diseno(){
+  const L = content.theme.layout;
+  const rng = (key,lab,min,max,unit)=>`
+    <label style="display:flex;justify-content:space-between;align-items:baseline">${lab}
+      <span style="font-weight:600;color:var(--accent)" id="lv-${key}">${L[key]}${unit}</span></label>
+    <input type="range" min="${min}" max="${max}" value="${L[key]}" style="padding:0;height:30px"
+      oninput="layEdit('${key}',this.value,true,'${unit}')">`;
+  const chk = (key,lab)=>`<label style="margin:0"><input type="checkbox" ${L[key]?"checked":""} onchange="layEditBool('${key}',this.checked)"> ${lab}</label>`;
+  const sel = (key,lab,opts)=>`
+    <label>${lab}</label>
+    <select onchange="layEdit('${key}',this.value)">
+      ${opts.map(([v,t])=>`<option value="${v}" ${L[key]===v?"selected":""}>${t}</option>`).join("")}
+    </select>`;
+  $("#sec-content").innerHTML = `
+    <div class="banner">📐 Mueve cualquier control y míralo <b>al instante</b> en la vista previa. Nada cambia en la web real hasta que presiones «Publicar cambios».</div>
+    <div class="card" style="position:sticky;top:64px;z-index:30">
+      <h3>Vista previa en vivo</h3>
+      <iframe id="prev" src="${siteUrl()}" style="width:100%;height:380px;border:1.5px solid var(--line);border-radius:12px;background:#fff" onload="pv()"></iframe>
+    </div>
+    <div class="card"><h3>Encabezado y logo</h3>
+      ${rng("headerH","Altura del encabezado",58,100,"px")}
+      ${sel("navPos","Posición del menú (Colecciones · GMKT)",[["center","Centrado"],["left","Junto al logo (izquierda)"]])}
+      ${rng("logoH","Alto del logo",24,72,"px")}
+      ${rng("logoW","Ancho máximo del logo",100,320,"px")}
+    </div>
+    <div class="card"><h3>Portada</h3>
+      ${sel("heroAlign","Alineación del contenido",[["center","Centrado"],["left","A la izquierda"]])}
+      ${rng("heroTitle","Tamaño del título",70,140,"%")}
+      ${rng("heroText","Tamaño del párrafo",80,130,"%")}
+      ${rng("heroMascot","Tamaño del perrito / imagen",50,150,"%")}
+      ${rng("heroBtns","Tamaño de los botones de portada",80,130,"%")}
+      <label>Mostrar u ocultar</label>
+      <div class="chkrow">
+        ${chk("showEyebrow","Texto pequeño")} ${chk("showSub","Párrafo")}
+        ${chk("showCta1","Botón principal")} ${chk("showCta2","Botón secundario")}
+      </div>
+    </div>
+    <div class="card"><h3>Botones (todo el sitio)</h3>
+      ${rng("btnSize","Tamaño general de botones",80,125,"%")}
+      ${sel("btnShape","Forma de los botones",[["pill","Píldora (original)"],["redondeado","Redondeado"],["recto","Casi recto"]])}
+    </div>
+    <div class="card"><h3>Secciones y espaciado</h3>
+      ${rng("sectionPad","Espacio vertical entre secciones",60,140,"%")}
+      ${rng("wrapW","Ancho del contenido",960,1360,"px")}
+    </div>
+    <div class="card"><h3>Tarjetas de producto</h3>
+      ${rng("cardMin","Tamaño de las tarjetas",215,345,"px")}
+      ${sel("cardRatio","Proporción de la foto",[["alta","Vertical (original)"],["cuadrada","Cuadrada"],["panoramica","Apaisada"]])}
+    </div>
+    <div class="card"><h3>Pie de página</h3>
+      ${rng("footerSize","Tamaño del texto",85,115,"%")}
+      <label>Columnas visibles</label>
+      <div class="chkrow">
+        ${chk("showFootShop","Tienda")} ${chk("showFootBrand","Marca")} ${chk("showFootHelp","Ayuda")}
+      </div>
+    </div>
+    <button class="btn btn-ghost" onclick="resetLayout()">↺ Restaurar diseño original</button>`;
+},
 colores(){
   const labels = {bg:"Fondo de la página",surface:"Fondo de tarjetas",surface2:"Fondo secundario",ink:"Color del texto",muted:"Texto secundario",accent:"Color de acento (botones y detalles)",accentSoft:"Fondo suave del acento",accentInk:"Texto sobre el acento"};
   const mode = m=>Object.keys(labels).map(k=>`
@@ -706,7 +776,7 @@ colores(){
     </div>
     <div class="card"><h3>Bordes</h3>
       <label>Redondez de tarjetas y botones</label>
-      <select onchange="content.theme.radius=this.value;setDirty()">
+      <select onchange="content.theme.radius=this.value;setDirty();pv()">
         ${[["compact","Más cuadrado"],["normal","Normal (original)"],["round","Más redondo"]].map(([v,l])=>`<option value="${v}" ${content.theme.radius===v?"selected":""}>${l}</option>`).join("")}
       </select>
     </div>`;
@@ -720,7 +790,7 @@ tipografia(){
   };
   const sel = (k,lab,hint)=>`
     <label>${lab} <small>${hint}</small></label>
-    <select onchange="content.theme.fonts.${k}=this.value;setDirty();fontPreview()">
+    <select onchange="content.theme.fonts.${k}=this.value;setDirty();fontPreview();pv()">
       ${lists[k].map(f=>`<option ${f===F[k]?"selected":""}>${f}</option>`).join("")}
     </select>`;
   $("#sec-content").innerHTML = `
@@ -827,7 +897,24 @@ async function makeWhiteLogo(){
   im.onerror = ()=>toast("No se pudo procesar el logo", true);
   im.src = dataURL;
 }
-function colorEdit(m,k,v){ content.theme.colors[m][k] = v; setDirty(); }
+function pv(){
+  const f = $("#prev");
+  if(f && f.contentWindow) f.contentWindow.postMessage({gmPreviewTheme: content.theme, gmPreviewSettings: content.settings}, "*");
+}
+function layEdit(key, val, num, unit){
+  content.theme.layout[key] = num ? parseFloat(val) : val;
+  const lb = $("#lv-"+key); if(lb) lb.textContent = val + (unit||"");
+  setDirty(); pv();
+}
+function layEditBool(key, val){
+  content.theme.layout[key] = !!val;
+  setDirty(); pv();
+}
+function resetLayout(){
+  content.theme.layout = JSON.parse(JSON.stringify(LAYOUT_DEFAULT));
+  setDirty(); go("diseno"); toast("Diseño restaurado al original");
+}
+function colorEdit(m,k,v){ content.theme.colors[m][k] = v; setDirty(); pv(); }
 function resetColors(m){
   content.theme.colors[m] = JSON.parse(JSON.stringify(THEME_DEFAULT.colors[m]));
   setDirty(); go("colores"); toast("Colores de "+(m==="light"?"modo claro":"modo oscuro")+" restaurados");

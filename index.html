@@ -2012,13 +2012,54 @@ const THEME_DEFAULT = {
     dark:{bg:"#121110",surface:"#1B1916",surface2:"#26221C",ink:"#ECE8E1",muted:"#9C958A",accent:"#B49A72",accentSoft:"#2A251D",accentInk:"#14110C"}
   },
   fonts:{display:"Archivo",body:"Manrope",mono:"Space Mono"},
-  radius:"normal"
+  radius:"normal",
+  layout:{
+    headerH:74, navPos:"center", logoH:42, logoW:190,
+    heroAlign:"center", heroTitle:100, heroText:100, heroMascot:100, heroBtns:100,
+    showEyebrow:true, showSub:true, showCta1:true, showCta2:true,
+    btnSize:100, btnShape:"pill",
+    sectionPad:100, wrapW:1180,
+    cardMin:265, cardRatio:"alta",
+    footerSize:100, showFootShop:true, showFootBrand:true, showFootHelp:true
+  }
 };
 function hexAlpha(hex,a){
   let h = String(hex||"#000").replace("#","");
   if(h.length===3) h = h.split("").map(c=>c+c).join("");
   const n = parseInt(h,16)||0;
   return "rgba("+((n>>16)&255)+","+((n>>8)&255)+","+(n&255)+","+a+")";
+}
+function applyLayout(l){
+  l = Object.assign({}, THEME_DEFAULT.layout, l||{});
+  const k = v=>(v/100).toFixed(3);
+  const shape = ({pill:"999px", redondeado:"14px", recto:"6px"})[l.btnShape]||"999px";
+  const ratio = ({alta:"4/4.6", cuadrada:"1/1", panoramica:"4/3"})[l.cardRatio]||"4/4.6";
+  let css = ":root{--header-h:"+l.headerH+"px}\n"
+    +".logo img.paw-img{height:"+l.logoH+"px;max-width:"+l.logoW+"px}\n"
+    +".btn{border-radius:"+shape+";font-size:calc(.95rem*"+k(l.btnSize)+");padding:calc(.85rem*"+k(l.btnSize)+") calc(1.7rem*"+k(l.btnSize)+")}\n"
+    +".btn-sm{font-size:calc(.85rem*"+k(l.btnSize)+");padding:calc(.55rem*"+k(l.btnSize)+") calc(1.1rem*"+k(l.btnSize)+")}\n"
+    +".hero h1{font-size:calc(clamp(2.5rem,6vw,4.6rem)*"+k(l.heroTitle)+")}\n"
+    +".hero p{font-size:calc(clamp(1rem,1.5vw,1.18rem)*"+k(l.heroText)+")}\n"
+    +".hero-mascot{width:min("+Math.round(300*l.heroMascot/100)+"px,"+Math.min(84,Math.round(56*l.heroMascot/100))+"vw)}\n"
+    +".hero-ctas .btn{font-size:calc(.95rem*"+k(l.heroBtns)+");padding:calc(.85rem*"+k(l.heroBtns)+") calc(1.7rem*"+k(l.heroBtns)+")}\n"
+    +".section{padding:calc(6.5rem*"+k(l.sectionPad)+") 0}\n"
+    +".wrap{width:min("+l.wrapW+"px,92%)}\n"
+    +".grid{grid-template-columns:repeat(auto-fit,minmax("+l.cardMin+"px,1fr))}\n"
+    +".carousel .product-card{flex:0 0 min("+(l.cardMin+45)+"px,78vw)}\n"
+    +".pc-media{aspect-ratio:"+ratio+"}\n"
+    +".footer{font-size:calc(1rem*"+k(l.footerSize)+")}\n";
+  if(l.heroAlign==="left") css += ".hero-content{text-align:left}.hero-ctas{justify-content:flex-start}.hero-mascot{margin-left:0}.hero-content p{margin-left:0}\n";
+  if(l.navPos==="left") css += "@media(min-width:761px){.nav-center{position:static;transform:none;margin-left:.6rem}}\n";
+  if(!l.showEyebrow) css += ".hero-content .eyebrow{display:none}\n";
+  if(!l.showSub) css += ".hero-content > p{display:none}\n";
+  if(!l.showCta1) css += ".hero-ctas .btn-accent{display:none}\n";
+  if(!l.showCta2) css += ".hero-ctas .btn-ghost{display:none}\n";
+  if(!l.showFootShop) css += ".footer-grid > div:nth-child(2){display:none}\n";
+  if(!l.showFootBrand) css += ".footer-grid > div:nth-child(3){display:none}\n";
+  if(!l.showFootHelp) css += ".footer-grid > div:nth-child(4){display:none}\n";
+  let st = document.getElementById("layout-style");
+  if(!st){ st = document.createElement("style"); st.id = "layout-style"; document.head.appendChild(st); }
+  st.textContent = css;
 }
 function applyTheme(t){
   t = t||{};
@@ -2040,6 +2081,7 @@ function applyTheme(t){
     +'--font-mono:"'+f.mono+'",ui-monospace,monospace;'
     +"--r-lg:"+rad[0]+";--r-md:"+rad[1]+";--r-sm:"+rad[2]+"}\n"
     +'[data-theme="dark"]{'+vars(D)+"}";
+  applyLayout(t.layout);
 }
 
 /* ---------- contenido editable (content.json) ---------- */
@@ -2134,6 +2176,13 @@ async function boot(){
     }
   }catch(e){ console.warn("content.json no disponible; usando contenido embebido."); }
 }
+window.addEventListener("message", e=>{
+  const d = e.data;
+  if(d && d.gmPreviewTheme){
+    applyTheme(d.gmPreviewTheme);
+    if(d.gmPreviewSettings){ SETTINGS = Object.assign(SETTINGS, d.gmPreviewSettings); applySettings(); }
+  }
+});
 boot();
 </script>
 </body>
