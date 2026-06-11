@@ -915,6 +915,31 @@
       "body": "Manrope",
       "mono": "Space Mono"
     },
-    "radius": "normal"
+    "radius": "normal",
+    "layout": {
+      "headerH": 74,
+      "navPos": "center",
+      "logoH": 72,
+      "logoW": 320,
+      "heroAlign": "center",
+      "heroTitle": 100,
+      "heroText": 100,
+      "heroMascot": 100,
+      "heroBtns": 100,
+      "showEyebrow": true,
+      "showSub": true,
+      "showCta1": true,
+      "showCta2": true,
+      "btnSize": 100,
+      "btnShape": "pill",
+      "sectionPad": 100,
+      "wrapW": 1180,
+      "cardMin": 265,
+      "cardRatio": "alta",
+      "footerSize": 100,
+      "showFootShop": true,
+      "showFootBrand": true,
+      "showFootHelp": true
+    }
   }
 }
