@@ -268,7 +268,7 @@ const THEME_DEFAULT = {
 };
 function ensureDefaults(){
   const s = content.settings;
-  ["brandName","pageTitle","logoImg","logoImgDark","heroImg"].forEach(k=>{ if(s[k]===undefined) s[k] = (k==="brandName"?"GM Basics":""); });
+  ["brandName","pageTitle","logoImg","logoImgDark","heroImg","currency"].forEach(k=>{ if(s[k]===undefined) s[k] = (k==="brandName"?"GM Basics":(k==="currency"?"$":"")); });
   if(!content.theme) content.theme = JSON.parse(JSON.stringify(THEME_DEFAULT));
   const t = content.theme;
   if(!t.colors) t.colors = JSON.parse(JSON.stringify(THEME_DEFAULT.colors));
@@ -609,10 +609,14 @@ collections(){
 envios(){
   const s = content.settings;
   $("#sec-content").innerHTML = `
+    <div class="card"><h3>Moneda</h3>
+      <label>Símbolo de la moneda <small>(ej: $, Bs, €, S/. — se usa en todos los precios de la página)</small></label>
+      <input data-s="currency" value="${esc(s.currency)}" placeholder="Bs" oninput="setEdit(this)" style="max-width:160px">
+    </div>
     <div class="card"><h3>Envíos</h3>
       <div class="row2">
-        <div><label>Envío gratis a partir de (USD)</label><input data-s="freeShip" type="number" min="0" value="${s.freeShip}" oninput="setEdit(this,true)"></div>
-        <div><label>Costo de envío (USD)</label><input data-s="shipCost" type="number" step="0.01" min="0" value="${s.shipCost}" oninput="setEdit(this,true)"></div>
+        <div><label>Envío gratis a partir de</label><input data-s="freeShip" type="number" min="0" value="${s.freeShip}" oninput="setEdit(this,true)"></div>
+        <div><label>Costo de envío</label><input data-s="shipCost" type="number" step="0.01" min="0" value="${s.shipCost}" oninput="setEdit(this,true)"></div>
       </div>
     </div>
     <div class="card"><h3>Tallas</h3>
@@ -711,6 +715,14 @@ diseno(){
     <input type="range" min="${min}" max="${max}" value="${L[key]}" style="padding:0;height:30px"
       oninput="layEdit('${key}',this.value,true,'${unit}')">`;
   const chk = (key,lab)=>`<label style="margin:0"><input type="checkbox" ${L[key]?"checked":""} onchange="layEditBool('${key}',this.checked)"> ${lab}</label>`;
+  const rngNum = (key,lab,min,max,unit)=>`
+    <label style="display:flex;justify-content:space-between;align-items:center;gap:.6rem">${lab}
+      <span style="display:flex;gap:.35rem;align-items:center;font-weight:600;color:var(--accent)">
+        <input type="number" min="1" id="nm-${key}" value="${L[key]}" style="width:92px;padding:.35rem .5rem"
+          oninput="layEdit('${key}',this.value,true);const r=document.getElementById('rg-${key}');if(r)r.value=this.value">${unit}
+      </span></label>
+    <input type="range" min="${min}" max="${max}" value="${Math.min(L[key],max)}" id="rg-${key}" style="padding:0;height:30px"
+      oninput="layEdit('${key}',this.value,true);document.getElementById('nm-${key}').value=this.value">`;
   const sel = (key,lab,opts)=>`
     <label>${lab}</label>
     <select onchange="layEdit('${key}',this.value)">
@@ -723,10 +735,10 @@ diseno(){
       <iframe id="prev" src="${siteUrl()}" style="width:100%;height:380px;border:1.5px solid var(--line);border-radius:12px;background:#fff" onload="pv()"></iframe>
     </div>
     <div class="card"><h3>Encabezado y logo</h3>
-      ${rng("headerH","Altura del encabezado",58,100,"px")}
+      ${rngNum("headerH","Altura del encabezado",56,200,"px")}
       ${sel("navPos","Posición del menú (Colecciones · GMKT)",[["center","Centrado"],["left","Junto al logo (izquierda)"]])}
-      ${rng("logoH","Alto del logo",24,72,"px")}
-      ${rng("logoW","Ancho máximo del logo",100,320,"px")}
+      ${rngNum("logoH","Alto del logo (escribe el número que quieras, sin límite)",16,300,"px")}
+      ${rngNum("logoW","Ancho máximo del logo (sin límite)",60,900,"px")}
     </div>
     <div class="card"><h3>Portada</h3>
       ${sel("heroAlign","Alineación del contenido",[["center","Centrado"],["left","A la izquierda"]])}

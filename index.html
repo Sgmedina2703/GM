@@ -978,7 +978,14 @@ const t  = (k,x)=>{
   return s;
 };
 const esc = s=>String(s).replace(/[&<>"']/g, c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[c]));
-const money = n=>"$"+n.toFixed(2);
+const money = n=>{
+  const c = (typeof SETTINGS!=="undefined" && SETTINGS.currency) || "$";
+  return (c.length>1 ? c+" " : c) + n.toFixed(2);
+};
+const moneyInt = n=>{
+  const c = (typeof SETTINGS!=="undefined" && SETTINGS.currency) || "$";
+  return (c.length>1 ? c+" " : c) + n;
+};
 const prodById = id=>PRODUCTS.find(p=>p.id===id);
 const colById  = id=>COLLECTIONS.find(c=>c.id===id);
 const reduceMotion = ()=>window.matchMedia("(prefers-reduced-motion: reduce)").matches;
@@ -1658,7 +1665,7 @@ function renderGmkt(){
     <div class="plan-card ${p.featured?"featured":""}">
       ${p.featured?`<span class="plan-flag">${t("gmkt.planPop")}</span>`:""}
       <div class="eyebrow">${esc(p.name[state.lang])}</div>
-      <div class="plan-price">$${p.price}<small>${t("gmkt.perMonth")}</small></div>
+      <div class="plan-price">${moneyInt(p.price)}<small>${t("gmkt.perMonth")}</small></div>
       <ul>${p.items[state.lang].map(i=>`<li>${esc(i)}</li>`).join("")}</ul>
       <button class="btn ${p.featured?"btn-accent":"btn-ghost"}" onclick="go('gmkt','contact');presetService('${p.id}')">${t("gmkt.planCta")}</button>
     </div>`).join("");
@@ -2090,7 +2097,7 @@ let SETTINGS = {
   phone:"+1 (305) 000-0000", whatsapp:"13050000000",
   location:"Naples, Florida \u00b7 USA", instagram:"", tiktok:"",
   copyright:"\u00a9 2026 GM Basics \u00b7 RL Creative Group", freeShip:80, shipCost:6.95,
-  brandName:"GM Basics", pageTitle:"", logoImg:"", logoImgDark:"", heroImg:""
+  brandName:"GM Basics", pageTitle:"", logoImg:"", logoImgDark:"", heroImg:"", currency:"$"
 };
 function applyContent(c){
   if(c.i18n) I18N = c.i18n;
