@@ -40,7 +40,7 @@ body{
   transition:background .45s ease,color .45s ease;
 }
 img,svg{display:block;max-width:100%}
-.logo img{height:36px;width:auto}
+.logo img.paw-img{height:42px;width:auto;max-width:190px;object-fit:contain}
 .hero-mascot img{width:100%;height:auto;border-radius:22px}
 .pc-media img,.qv-media img,.ci-thumb img,.col-card .art img,.col-banner .art img,.pf-card .art img{width:100%;height:100%;object-fit:cover}
 .pc-media img{transition:transform .6s cubic-bezier(.16,1,.3,1)}
@@ -2098,6 +2098,7 @@ function applySettings(){
 function updateLogoForTheme(){
   const sgs = SETTINGS;
   const src = (state.theme==="dark" && sgs.logoImgDark) ? sgs.logoImgDark : (sgs.logoImg||"");
+  $$(".logo .cfg-brand").forEach(sp=>{ sp.style.display = sgs.logoImg ? "none" : ""; });
   if(!src) return;
   $$(".logo").forEach(l=>{
     const old = l.querySelector("svg.paw, img.paw-img");
